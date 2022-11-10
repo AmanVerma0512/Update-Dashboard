@@ -9,7 +9,6 @@ from firebase_admin import credentials, firestore
 from more_itertools import peekable
 import json
 import boto3
-import re
 import streamlit as st
 
 
@@ -212,8 +211,8 @@ if st.button("Update Data"):
     object.put(Body=str(data))
     content_object = s3.Object('forgefait', 'new_data.json')
     file_content = content_object.get()['Body'].read().decode('utf-8')
-    p = re.compile('(?<!\\\\)\'')
-    file_content = p.sub('\"', file_content)
+#     p = re.compile('(?<!\\\\)\'')
+#     file_content = p.sub('\"', file_content)
 #     json_data = json.loads(file_content)
     st.write("Data is Changed! Updated in s3 Bucket!")
     st.write("Process Completed!")    
