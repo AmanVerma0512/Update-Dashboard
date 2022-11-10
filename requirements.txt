@@ -1,5 +1,4 @@
 firebase_admin
 more_itertools
 boto3
-re
 streamlit
