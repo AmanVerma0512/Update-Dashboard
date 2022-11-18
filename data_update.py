@@ -9,6 +9,7 @@ from firebase_admin import credentials, firestore
 from more_itertools import peekable
 import json
 import boto3
+import re
 import streamlit as st
 
 
@@ -21,7 +22,7 @@ class DataPreprocessor():
             "type": st.secrets["type"],
             "project_id": st.secrets["project_id"],
             "private_key_id": st.secrets["private_key_id"],
-            "private_key": st.secrets["private_key"],
+            "private_key": st.secrets["private_key"],,
             "client_email": st.secrets["client_email"],
             "client_id": st.secrets["client_id"],
             "auth_uri": st.secrets["auth_uri"],
@@ -194,16 +195,20 @@ class DataPreprocessor():
 
 
 # In[26]:
-
+@st.experimental_singleton
+def return_data():
+    preprocessor = DataPreprocessor()
+    preprocessor.initializeFirebaseApp()
+    preprocessor.createClient()
+    data = preprocessor.getDataDumpAndRestructure('users')
+    st.write("Data Loaded!")
+    return data
 
 st.title("Update Data for Dashboard")
 
 if st.button("Update Data"):
     
-    preprocessor = DataPreprocessor()
-    preprocessor.initializeFirebaseApp()
-    preprocessor.createClient()
-    data = preprocessor.getDataDumpAndRestructure('users')
+    data = return_data()
     st.write("Firebase Data Loaded and initialised!")
     
     s3 = boto3.resource('s3', aws_access_key_id = st.secrets["aws_access_key_id"], aws_secret_access_key = st.secrets["aws_secret_access_key"])
@@ -211,8 +216,8 @@ if st.button("Update Data"):
     object.put(Body=str(data))
     content_object = s3.Object('forgefait', 'new_data.json')
     file_content = content_object.get()['Body'].read().decode('utf-8')
-#     p = re.compile('(?<!\\\\)\'')
-#     file_content = p.sub('\"', file_content)
+    p = re.compile('(?<!\\\\)\'')
+    file_content = p.sub('\"', file_content)
 #     json_data = json.loads(file_content)
     st.write("Data is Changed! Updated in s3 Bucket!")
     st.write("Process Completed!")    
